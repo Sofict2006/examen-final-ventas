@@ -1,0 +1,4 @@
+['fecha_venta', 'numero_ventas', 'unidades_vendidas', 'ingreso_total']
+(datetime.date(2026, 1, 10), 2, 3, Decimal('46.00'))
+(datetime.date(2026, 1, 11), 3, 6, Decimal('51.25'))
+(datetime.date(2026, 1, 12), 1, 4, Decimal('12.40'))

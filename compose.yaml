@@ -1,0 +1,60 @@
+name: examen-ventas
+x-common: &common
+  image: smendezm/examen-ventas:1.0
+  user: '${AIRFLOW_UID:?Ejecute bash scripts/preparar.sh primero}:0'
+  pull_policy: missing
+  environment:
+    AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+    AIRFLOW__CORE__DAGS_FOLDER: /workspace/airflow/dags
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: utc
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////state/airflow.db
+    AIRFLOW__LOGGING__BASE_LOG_FOLDER: /state/logs
+    AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '5'
+    AIRFLOW__SCHEDULER__PARSING_PROCESSES: '1'
+    AIRFLOW__WEBSERVER__WORKERS: '2'
+    PYTHONPATH: /workspace/scripts
+    DBT_TARGET_PATH: /state/dbt/target
+    DBT_LOG_PATH: /state/dbt/logs
+    DBT_SEND_ANONYMOUS_USAGE_STATS: 'false'
+    TZ: UTC
+    CONNECTION_CHECK_MAX_COUNT: '0'
+  volumes:
+    - .:/workspace:ro
+    - warehouse:/data
+    - state:/state
+  working_dir: /workspace
+services:
+  permissions:
+    <<: *common
+    user: '0:0'
+    entrypoint: /bin/bash
+    command: ['-c', 'chown -R ${AIRFLOW_UID}:0 /data /state && chmod -R u+rwX /data /state']
+  airflow:
+    <<: *common
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+    command: ['bash', '/workspace/scripts/start.sh']
+    ports:
+      - '127.0.0.1:8080:8080'
+    healthcheck:
+      test: ['CMD', 'python', '/workspace/scripts/health.py']
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
+    stop_grace_period: 30s
+    mem_limit: 3g
+  cli:
+    <<: *common
+    profiles: [tools]
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+    entrypoint: ['/usr/bin/dumb-init', '--', '/entrypoint', 'bash', '/workspace/scripts/cli.sh']
+    command: []
+volumes:
+  warehouse:
+  state:

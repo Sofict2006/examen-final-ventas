@@ -1,0 +1,10 @@
+examen_ventas:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: /data/ventas.duckdb
+      schema: analytics
+      threads: 1
+      settings:
+        TimeZone: UTC

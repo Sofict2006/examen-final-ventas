@@ -1,0 +1,9 @@
+name: examen_ventas
+version: '1.0.0'
+config-version: 2
+profile: examen_ventas
+model-paths: [models]
+test-paths: [tests]
+models:
+  examen_ventas:
+    +materialized: table

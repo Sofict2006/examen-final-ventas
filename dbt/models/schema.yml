@@ -1,0 +1,22 @@
+version: 2
+models:
+  - name: stg_ventas
+    columns:
+      - name: id_venta
+        tests: [unique, not_null]
+      - name: fecha_venta
+        tests: [not_null]
+      - name: cantidad
+        tests: [not_null]
+      - name: precio_unitario
+        tests: [not_null]
+  - name: ventas_diarias
+    columns:
+      - name: fecha_venta
+        tests: [unique, not_null]
+      - name: numero_ventas
+        tests: [not_null]
+      - name: unidades_vendidas
+        tests: [not_null]
+      - name: ingreso_total
+        tests: [not_null]
