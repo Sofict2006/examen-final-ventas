@@ -46,11 +46,6 @@ Se mantiene la regla de ejecución predeterminada `all_success`. Si freshness fa
 
 La última carga fue hace unas 2 horas. Freshness y build terminaron en `success`, con freshness antes del build.
 
-![Estados escenario actualizada](1_actualizada_estados.png)
-
-![Log freshness escenario actualizada](1_actualizada_log_freshness.png)
-
-![Log build escenario actualizada](1_actualizada_log_build.png)
 
 Resumen consultado antes del bloqueo: ver `1_resumen_antes.txt`.
 
@@ -64,11 +59,6 @@ Resumen consultado antes del bloqueo: ver `1_resumen_antes.txt`.
 
 La última carga fue hace unas 30 horas. Se lanzó una ejecución nueva. `verificar_freshness` quedó en `failed` por superar las 24 horas y `construir_resumen` quedó en `upstream_failed`, sin ejecutarse.
 
-![Estados escenario desactualizada](2_desactualizada_estados.png)
-
-![Log freshness escenario desactualizada](2_desactualizada_log_freshness.png)
-
-![Build no ejecutado](2_desactualizada_build_no_corrio.png)
 
 Log que explica el fallo: ver `2_desactualizada_log_dbt.txt`, que contiene `ERROR STALE freshness of ventas_raw.ventas`, y `2_desactualizada_artifacts.txt`, que muestra `status: error` en `sources.json`.
 
