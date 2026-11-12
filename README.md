@@ -44,15 +44,25 @@ Se mantiene la regla de ejecución predeterminada `all_success`. Si freshness fa
 
 ## 2. Escenario 1: fuente actualizada
 
-La última carga fue hace unas 2 horas. Freshness y build terminaron en `success`, con freshness antes del build.
+Ejecución `manual__2026-11-12T12:26:53` (última carga hace unas 2 horas). `verificar_freshness` y `construir_resumen` terminaron en `success`, con freshness antes del build.
 
-![Estados escenario actualizada](1_actualizada_estados.png)
+Resumen generado por el modelo:
 
-![Log freshness escenario actualizada](1_actualizada_log_freshness.png)
+![Resumen del modelo](evidencias/ev1.png)
 
-![Log build escenario actualizada](1_actualizada_log_build.png)
+Estados de la ejecución:
 
-Resumen consultado antes del bloqueo: ver `1_resumen_antes.txt`.
+![Estados escenario actualizada](evidencias/ev2.png)
+
+Log de `verificar_freshness` (`INICIO dbt` y `FIN dbt`):
+
+![Log freshness escenario actualizada](evidencias/ev3.png)
+
+Log de `construir_resumen` (`INICIO dbt ['build']` y `FIN dbt ['build']`):
+
+![Log build escenario actualizada](evidencias/ev4.png)
+
+Resumen consultado antes del bloqueo (`evidencias/1_resumen_antes.txt`):
 
 | fecha_venta | numero_ventas | unidades_vendidas | ingreso_total |
 |---|---:|---:|---:|
@@ -62,21 +72,29 @@ Resumen consultado antes del bloqueo: ver `1_resumen_antes.txt`.
 
 ## 3. Escenario 2: fuente desactualizada
 
-La última carga fue hace unas 30 horas. Se lanzó una ejecución nueva. `verificar_freshness` quedó en `failed` por superar las 24 horas y `construir_resumen` quedó en `upstream_failed`, sin ejecutarse.
+Nueva ejecución `manual__2026-11-12T12:31:52.315343+00:00` (última carga hace unas 30 horas). `verificar_freshness` quedó en `failed` por superar las 24 horas y `construir_resumen` quedó en `upstream_failed`, sin ejecutarse.
 
-![Estados escenario desactualizada](2_desactualizada_estados.png)
+Estados de la ejecución:
 
-![Log freshness escenario desactualizada](2_desactualizada_log_freshness.png)
+![Estados escenario desactualizada](evidencias/ev5.png)
 
-![Build no ejecutado](2_desactualizada_build_no_corrio.png)
+Log de `verificar_freshness` con el error de la tarea:
 
-Log que explica el fallo: ver `2_desactualizada_log_dbt.txt`, que contiene `ERROR STALE freshness of ventas_raw.ventas`, y `2_desactualizada_artifacts.txt`, que muestra `status: error` en `sources.json`.
+![Log freshness escenario desactualizada](evidencias/ev6.png)
 
-Resumen consultado después del bloqueo: ver `2_resumen_despues.txt`. Conserva exactamente las mismas 3 filas del escenario anterior. Bloquear el build conservó el resumen anterior y no lo borró. Como los datos de negocio no cambian, la igualdad de contenido por sí sola no demuestra que el build no corrió. La evidencia de eso son los estados de Airflow (`upstream_failed` y ausencia de `INICIO dbt` en el build).
+`construir_resumen` no tiene intento ejecutado ni marca `INICIO dbt` en esta ejecución:
+
+![Build no ejecutado](evidencias/ev7.png)
+
+Motivo del fallo: `evidencias/2_desactualizada_artifacts.txt` contiene el `sources.json` de dbt generado a las 12:32:02 UTC, con `"status": "error"` para `ventas_raw.ventas` y `max_loaded_at_time_ago_in_s` de 108027 segundos (unas 30 horas), por encima del umbral de error de 24 horas. `evidencias/2_desactualizada_log_dbt.txt` contiene el log de Airflow que registra `verificar_freshness` en `failed` y la ejecución marcada como fallida.
+
+Resumen consultado después del bloqueo (`evidencias/2_resumen_despues.txt`). Conserva exactamente las mismas 3 filas del escenario anterior. Bloquear el build conservó el resumen anterior y no lo borró. Como los datos de negocio no cambian, la igualdad de contenido por sí sola no demuestra que el build no corrió. La evidencia de eso son los estados de Airflow (`upstream_failed` y ausencia de `INICIO dbt` en el build).
+
+![Resumen después del bloqueo](evidencias/image.png)
 
 ## 4. Escenario opcional: advertencia
 
-Con una carga de hace unas 18 horas, freshness reportó `WARN` y ambas tareas terminaron en `success`, por lo que el build se ejecutó. Ver `3_advertencia_opcional.txt`.
+Se preparó el escenario `advertencia` (carga de hace unas 18 horas), que debe producir `WARN` en freshness y permitir el build. Este escenario es opcional y no exige evidencia.
 
 ## 5. Preguntas conceptuales
 
@@ -90,8 +108,10 @@ Las pruebas de integridad (`unique`, `not_null` y valores válidos) solo revisan
 
 ## 6. Contenido de la entrega
 
-- Archivos modificados: `ventas_diarias.sql`, `sources.yml`, `examen_ventas.py`
-- Capturas de todas las evidencias.
-- Log del fallo de freshness: `2_desactualizada_log_dbt.txt`, `2_desactualizada_artifacts.txt`
-- Resumen antes y después: `1_resumen_antes.txt`, `2_resumen_despues.txt`
+- Archivos modificados: `dbt/models/ventas_diarias.sql`, `dbt/models/sources.yml`, `airflow/dags/examen_ventas.py`
+- Capturas escenario actualizada: `evidencias/ev2.png`, `ev3.png`, `ev4.png`
+- Capturas escenario desactualizada: `evidencias/ev5.png`, `ev6.png`, `ev7.png`
+- Log del fallo de freshness: `evidencias/ev6.png`, `2_desactualizada_artifacts.txt`, `2_desactualizada_log_dbt.txt`
+- Resumen antes y después: `evidencias/1_resumen_antes.txt`, `2_resumen_despues.txt`, `ev1.png`, `image.png`
+- Respuestas conceptuales: sección 5 de este documento.
 - No se incluyen imágenes Docker, volúmenes, `.env` ni credenciales.
